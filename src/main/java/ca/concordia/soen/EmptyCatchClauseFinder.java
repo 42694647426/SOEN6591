@@ -1,6 +1,9 @@
 package ca.concordia.soen;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -12,8 +15,11 @@ class EmptyCatchClauseFinder {
 
   public static void main(String[] args) { 
     ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
+    File file = new File(args[0]);
+    List<String> files = new ArrayList<String>();
+    Filewalker.listOfFiles(file, files);
 
-    for (String filename : args) {
+    for (String filename : files) {
       String source;
       try {
         source = StaticAnalysisDemo.read(filename);

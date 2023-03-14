@@ -1,10 +1,13 @@
 package ca.concordia.soen;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -20,8 +23,10 @@ public class StaticAnalysisDemo
   public static void main( String[] args )
   {
     ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
-    
-    for (String filename : args) {
+    File file = new File(args[0]);
+    List<String> files = new ArrayList<String>();
+    Filewalker.listOfFiles(file, files);
+    for (String filename : files) {
       String source;
       try {
         source = read(filename); 

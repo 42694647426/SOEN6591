@@ -26,7 +26,7 @@ public class Filewalker {
 	   }
 	   public static void main(String args[]) throws IOException {
 	      //Creating a File object for directory
-	      File file = new File("C:\\Users\\hanyi\\Desktop\\static-analysis-demo\\hadoop");
+	      File file = new File("C:\\Users\\hanyi\\Desktop\\SOEN6591\\hadoop");
 	      //List of all files and directories
 	      List<String> files = new ArrayList<String>();
 	      listOfFiles(file, files);
