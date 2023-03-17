@@ -24,6 +24,8 @@ class DestructiveWrapping {
 	    File file = new File(args[0]);
 	    List<String> files = new ArrayList<String>();
 	    Filewalker.listOfFiles(file, files);
+	    int totalCount = 0;
+	    
 	    for (String filename : files) {
 	      String source;
 	      try {
@@ -42,12 +44,14 @@ class DestructiveWrapping {
 
 	      //System.out.println(filename + ": " + visitor.count);
 	      if (visitor.count >0) {
+	    	  totalCount += visitor.count;
 	      for (String name : visitor.names) {
 	    	System.out.println(filename + ": " + visitor.count);
 	        System.out.println(name);
 	      }
 	      }
 	    }
+	    System.out.println("Total Count of destructive wrapping: " +totalCount);
   }
 
 
@@ -57,8 +61,7 @@ class DestructiveWrapping {
 
     @Override
     public boolean visit(CatchClause node) {
-    	
-
+ 
                 Statement statement = node.getBody();
                 if (statement instanceof Block) {
                     Block block = (Block) statement;
@@ -73,7 +76,7 @@ class DestructiveWrapping {
                                 	
                               	  int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
                               	  int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
-                                   String destructive = "Possible destructive wrapping found at line:" + startLine + "," + endLine;
+                                   String destructive = "Possible destructive wrapping found at line:" + startLine;
                                    names.add(destructive);
                                 }
                             }
