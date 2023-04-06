@@ -11,6 +11,7 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.*;
 
 import ca.concordia.soen.DestructiveWrapping.Visitor;
 
@@ -56,14 +57,27 @@ class GenericThrow {
 	  int count = 0;
 	  List<String> names = new ArrayList<>();
     @Override
-    public boolean visit(CatchClause clause) {
-      if (clause.getBody().statements().isEmpty()) {
-    	  count +=1;
-    	  int startLine = ((CompilationUnit) clause.getRoot()).getLineNumber(clause.getStartPosition());
-      	  int endLine = ((CompilationUnit) clause.getRoot()).getLineNumber(clause.getStartPosition()+clause.getLength());
-           String generic = "Possible generic throws found at line:" + startLine;
-           names.add(generic);
-      }
+	public boolean visit(MethodDeclaration methodDeclaration) {
+		
+		for (Object exceptionType: methodDeclaration.thrownExceptionTypes()) {
+			if (exceptionType instanceof SimpleType) {
+				count += 1;
+				int startLine = ((CompilationUnit) methodDeclaration.getRoot()).getLineNumber(methodDeclaration.getStartPosition());
+	      	    int endLine = ((CompilationUnit) methodDeclaration.getRoot()).getLineNumber(methodDeclaration.getStartPosition()+methodDeclaration.getLength());
+	            String generic = "Possible generic throws found at line:" + startLine;
+	            
+			}
+		}
+    	
+    	
+    	
+//      if (clause.getBody().statements().isEmpty()) {
+//    	  count +=1;
+//    	  int startLine = ((CompilationUnit) clause.getRoot()).getLineNumber(clause.getStartPosition());
+//      	  int endLine = ((CompilationUnit) clause.getRoot()).getLineNumber(clause.getStartPosition()+clause.getLength());
+//           String generic = "Possible generic throws found at line:" + startLine;
+//           names.add(generic);
+//      }
       return true;
     }
   }
