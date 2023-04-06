@@ -26,11 +26,11 @@ public class Filewalker {
 	   }
 	   public static void main(String args[]) throws IOException {
 	      //Creating a File object for directory
-	      File file = new File("C:\\Users\\hanyi\\Desktop\\SOEN6591\\hadoop");
+	      File file = new File("/Users/xiaoyu/Documents/Winter 2023/GitHub/SOEN6591/SOEN6591/cassandra-trunk");
 	      //List of all files and directories
 	      List<String> files = new ArrayList<String>();
 	      listOfFiles(file, files);
-	      //System.out.println(files);
+	      System.out.println(files.size());
 	   }
 
 }
