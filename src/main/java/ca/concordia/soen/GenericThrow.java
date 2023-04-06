@@ -5,12 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.CatchClause;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.*;
 
 import ca.concordia.soen.DestructiveWrapping.Visitor;
@@ -57,16 +51,16 @@ class GenericThrow {
 	  int count = 0;
 	  List<String> names = new ArrayList<>();
     @Override
-	public boolean visit(MethodDeclaration methodDeclaration) {
+	public boolean visit(ThrowStatement node) {
+    	Type exceptionType = (Type) node.getExpression().resolveTypeBinding().getTypeDeclaration();
 		
-		for (Object exceptionType: methodDeclaration.thrownExceptionTypes()) {
-			if (exceptionType instanceof SimpleType) {
+			if (exceptionType).getFullyQualifiedName().equals(Exception.class.getName())) {
 				count += 1;
-				int startLine = ((CompilationUnit) methodDeclaration.getRoot()).getLineNumber(methodDeclaration.getStartPosition());
-	      	    int endLine = ((CompilationUnit) methodDeclaration.getRoot()).getLineNumber(methodDeclaration.getStartPosition()+methodDeclaration.getLength());
+				int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
+	      	    int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
 	            String generic = "Possible generic throws found at line:" + startLine;
-	            
-			}
+	           names.add(generic);
+			
 		}
     	
     	
