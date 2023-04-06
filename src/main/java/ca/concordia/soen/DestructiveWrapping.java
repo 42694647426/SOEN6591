@@ -61,19 +61,16 @@ class DestructiveWrapping {
 
     @Override
     public boolean visit(CatchClause node) {
- 
+    			
                 Statement statement = node.getBody();
                 if (statement instanceof Block) {
                     Block block = (Block) statement;
                     for (Object obj : block.statements()) {
                         if (obj instanceof ThrowStatement) {
-                            ThrowStatement throwStatement = (ThrowStatement) obj;
-                            Expression expr = throwStatement.getExpression();
-                            if (expr instanceof ClassInstanceCreation) {
-                                ClassInstanceCreation instanceCreation = (ClassInstanceCreation) expr;
-                                if (instanceCreation.arguments().isEmpty()) {
+                        	ThrowStatement throwStatement = (ThrowStatement) obj;
+                            if (!throwStatement.getExpression().toString().contains(node.getException().getName().getIdentifier()))  {
                                 	count +=1;
-                                	
+                                	//System.out.println("Method:"+node.getName());
                               	  int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
                               	  int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
                                    String destructive = "Possible destructive wrapping found at line:" + startLine;
@@ -82,7 +79,7 @@ class DestructiveWrapping {
                             }
                         }
                     }
-                }
+                
                 return super.visit(node);
             
         
