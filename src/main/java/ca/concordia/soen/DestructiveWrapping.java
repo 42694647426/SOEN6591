@@ -17,15 +17,24 @@ import org.eclipse.jdt.core.dom.Statement;
 
 import ca.concordia.soen.CatchClauseCounter.Visitor;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Map;
+import com.opencsv.CSVWriter;
+
 class DestructiveWrapping {
 
-  public static void main(String[]  args) {
+  public static void main(String[]  args) throws IOException {
 	  ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
 	    File file = new File(args[0]);
 	    List<String> files = new ArrayList<String>();
 	    Filewalker.listOfFiles(file, files);
 	    int totalCount = 0;
-	    
+	    FileWriter csvFile = new FileWriter("DestructiveWrap.csv");
+        CSVWriter csvWriter = new CSVWriter(csvFile);
+
+        // write the header row
+        csvWriter.writeNext(new String[] {"Filename", "StartLine", "Endline", "CountinFile"});
 	    for (String filename : files) {
 	      String source;
 	      try {
@@ -45,12 +54,20 @@ class DestructiveWrapping {
 	      //System.out.println(filename + ": " + visitor.count);
 	      if (visitor.count >0) {
 	    	  totalCount += visitor.count;
-	      for (String name : visitor.names) {
+	      for (int i=0; i< visitor.names.size(); i++) {
 	    	System.out.println(filename + ": " + visitor.count);
-	        System.out.println(name);
+	        System.out.println(visitor.names.get(i));
+	        
+	        
+	        csvWriter.writeNext(new String[] {filename, visitor.startline.get(i), visitor.endline.get(i), Integer.toString(visitor.count)});
+	        
+	        
 	      }
 	      }
 	    }
+	    csvWriter.close();
+	    csvFile.close();
+	      System.out.println("Successfully exported Map to CSV file using OpenCSV!");
 	    System.out.println("Total Count of destructive wrapping: " +totalCount);
   }
 
@@ -58,7 +75,8 @@ class DestructiveWrapping {
   static class Visitor extends ASTVisitor {
     int count = 0;
     List<String> names = new ArrayList<>();
-
+    List<String> startline = new ArrayList<>();
+    List<String> endline = new ArrayList<>();
     @Override
     public boolean visit(CatchClause node) {
     			
@@ -75,6 +93,8 @@ class DestructiveWrapping {
                               	  int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
                                    String destructive = "Possible destructive wrapping found at line:" + startLine;
                                    names.add(destructive);
+                                   startline.add(Integer.toString(startLine));
+                                   endline.add(Integer.toString(endLine));
                                 }
                             }
                         }
