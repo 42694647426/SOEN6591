@@ -3,6 +3,7 @@ package ca.concordia.soen;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.*;
@@ -59,6 +60,8 @@ class GenericThrow {
     	if (isGenericType(exceptionType)) {
     		int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
       	    int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
+      	    String generic = "Possible generic throws found at line:" + startLine;
+      	    names.add(generic);
     	}
     	
     	
@@ -87,7 +90,23 @@ class GenericThrow {
     }
   }
   
-  private boolean isGenericType(Type exceptionType) {
-	  if 
+  private static boolean isGenericType(Type exceptionType) {
+	  List<String> genericExceptions = Arrays.asList(
+	            "java.lang.Exception",
+	            "java.lang.Throwable",
+	            "java.lang.RuntimeException"
+	    );
+	  if (exceptionType.isSimpleType()) {
+	        String typeName = ((SimpleType) exceptionType).getName().getFullyQualifiedName();
+	        return genericExceptions.contains(typeName);
+	    } else if (exceptionType.isQualifiedType()) {
+	        String typeName = ((QualifiedType) exceptionType).getName().getFullyQualifiedName();
+	        return genericExceptions.contains(typeName);
+	    } else if (exceptionType.isNameQualifiedType()) {
+	        String typeName = ((NameQualifiedType) exceptionType).getName().getFullyQualifiedName();
+	        return genericExceptions.contains(typeName);
+	    }
+
+	    return false;
   }
 }
