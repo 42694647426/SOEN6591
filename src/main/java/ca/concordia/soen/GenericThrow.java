@@ -9,16 +9,25 @@ import java.util.List;
 import org.eclipse.jdt.core.dom.*;
 
 import ca.concordia.soen.DestructiveWrapping.Visitor;
+import com.opencsv.CSVWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Map;
+import com.opencsv.CSVWriter;
 
 class GenericThrow {
 
-  public static void main(String[] args) { 
+  public static void main(String[] args) throws IOException { 
 	  ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
 	    File file = new File(args[0]);
 	    List<String> files = new ArrayList<String>();
 	    Filewalker.listOfFiles(file, files);
 	    int totalCount = 0;
 	    
+	    FileWriter csvFile = new FileWriter("GenericException.csv");
+        CSVWriter csvWriter = new CSVWriter(csvFile);
+	 // write the header row
+        csvWriter.writeNext(new String[] {"Filename", "StartLine", "Endline", "CountinFile"});
 	    for (String filename : files) {
 	      String source;
 	      try {
@@ -38,13 +47,20 @@ class GenericThrow {
 	      //System.out.println(filename + ": " + visitor.count);
 	      if (visitor.count >0) {
 	    	  totalCount += visitor.count;
-	      for (String name : visitor.names) {
-	    	System.out.println(filename + ": " + visitor.count);
-	        System.out.println(name);
-	      }
-	      }
-	      
-	    }
+	    	  for (int i=0; i< visitor.names.size(); i++) {
+	  	    	System.out.println(filename + ": " + visitor.count);
+	  	        System.out.println(visitor.names.get(i));
+	  	        
+	  	        
+	  	        csvWriter.writeNext(new String[] {filename, visitor.startline.get(i), visitor.endline.get(i), Integer.toString(visitor.count)});
+	  	        
+	  	        
+	  	      }
+	  	      }
+	  	    }
+	  	    csvWriter.close();
+	  	    csvFile.close();
+	  	      System.out.println("Successfully exported Map to CSV file using OpenCSV!");
 	    System.out.println("Total Count of generic throw: " +totalCount);
   }
 
