@@ -51,20 +51,49 @@ class GenericThrow {
   static class Visitor extends ASTVisitor {
 	  int count = 0;
 	  List<String> names = new ArrayList<>();
+	  List<String> startline = new ArrayList<>();
+	  List<String> endline = new ArrayList<>();
     @Override
-
-
-	public boolean visit(CatchClause node) {
-    	
-    	SingleVariableDeclaration exceptionDeclaration = node.getException();
-        Type exceptionType = exceptionDeclaration.getType();
-
-    	if (isGenericType(exceptionType)) {
-    		int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
-      	    int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
-      	    String generic = "Possible generic throws found at line:" + startLine;
-      	    names.add(generic);
+	public boolean visit(MethodDeclaration node) {
+    	List<Type> methodDeclarationThrownExceptions = node.thrownExceptionTypes();
+    	Block body = node.getBody();
+    	//System.out.println(body);
+    	if(body==null) {
+    		return true;
     	}
+    	if(methodDeclarationThrownExceptions.size() == 1){
+    		//System.out.println(methodDeclarationThrownExceptions.get(0).toString());
+            if (methodDeclarationThrownExceptions.get(0).toString().equals("Exception")) {
+            	//System.out.println("true");
+            	int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
+           	  int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition())+2;
+                String generic = "Possible generic found at line:" + startLine+" Endline: " + endLine;
+                count+=1;
+                //System.out.println(generic);
+                names.add(generic);
+                //System.out.println(names);
+                startline.add(Integer.toString(startLine));
+                endline.add(Integer.toString(endLine));
+            }
+        }
+    	
+    	 for(Object statement: body.statements()){
+             if (statement instanceof TryStatement tryStatement) {
+                 List<CatchClause> catchClauses = tryStatement.catchClauses();
+                 for (CatchClause catchClause : catchClauses) {
+                     if ("Exception".equals(catchClause.getException().getType().toString())) {
+                    	 //System.out.println(catchClause.getStartPosition());
+                    	 int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(catchClause.getStartPosition());
+                     	  int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(catchClause.getStartPosition()+catchClause.getLength());
+                          String generic = "Possible generic found at line:" + startLine+" Endline: " + endLine;
+                          count+=1;
+                          names.add(generic);
+                          startline.add(Integer.toString(startLine));
+                          endline.add(Integer.toString(endLine));
+                     }
+                 }
+             }
+         }
     	
       return true;
     }
