@@ -51,6 +51,7 @@ class GenericThrow {
 	  int count = 0;
 	  List<String> names = new ArrayList<>();
     @Override
+<<<<<<< HEAD
 	public boolean visit(ThrowStatement node) {
         // TODO: the exceptiontype compare to Exception!
     	Type exceptionType = (Type) node.getExpression().resolveTypeBinding().getTypeDeclaration();
@@ -63,6 +64,30 @@ class GenericThrow {
 	           names.add(generic);
 			
 		}
+=======
+	public boolean visit(CatchClause node) {
+    	
+    	SingleVariableDeclaration exceptionDeclaration = node.getException();
+        Type exceptionType = exceptionDeclaration.getType();
+
+    	if (isGenericType(exceptionType)) {
+    		int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
+      	    int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
+    	}
+    	
+    	
+    	
+//    	Type exceptionType = (Type) node.getExpression().resolveTypeBinding().getTypeDeclaration();
+//		
+//			if (exceptionType).getFullyQualifiedName().equals(Exception.class.getName())) {
+//				count += 1;
+//				int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
+//	      	    int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
+//	            String generic = "Possible generic throws found at line:" + startLine;
+//	           names.add(generic);
+//			
+//		}
+>>>>>>> 8d08f5865143a487abb6b06ae45b02260a0464b4
     	
     	
     	
@@ -75,5 +100,9 @@ class GenericThrow {
 //      }
       return true;
     }
+  }
+  
+  private boolean isGenericType(Type exceptionType) {
+	  if 
   }
 }
