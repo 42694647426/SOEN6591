@@ -52,6 +52,7 @@ class GenericThrow {
 	  List<String> names = new ArrayList<>();
     @Override
 	public boolean visit(ThrowStatement node) {
+        // TODO: the exceptiontype compare to Exception!
     	Type exceptionType = (Type) node.getExpression().resolveTypeBinding().getTypeDeclaration();
 		
 			if (exceptionType).getFullyQualifiedName().equals(Exception.class.getName())) {
