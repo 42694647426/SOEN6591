@@ -77,9 +77,9 @@ class GenericThrow {
     	if(body==null) {
     		return true;
     	}
-    	if(methodDeclarationThrownExceptions.size() == 1){
+    	for(Type methodDeclartion: methodDeclarationThrownExceptions){
     		//System.out.println(methodDeclarationThrownExceptions.get(0).toString());
-            if (methodDeclarationThrownExceptions.get(0).toString().equals("Exception")) {
+            if (methodDeclartion.toString().equals("Exception") || methodDeclartion.toString().equals("RuntimeException") || methodDeclartion.toString().equals("Throwable")) {
             	//System.out.println("true");
             	int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
            	  int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition())+2;
@@ -94,20 +94,29 @@ class GenericThrow {
         }
     	
     	 for(Object statement: body.statements()){
-             if (statement instanceof TryStatement tryStatement) {
-                 List<CatchClause> catchClauses = tryStatement.catchClauses();
-                 for (CatchClause catchClause : catchClauses) {
-                     if ("Exception".equals(catchClause.getException().getType().toString())) {
-                    	 //System.out.println(catchClause.getStartPosition());
-                    	 int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(catchClause.getStartPosition());
-                     	  int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(catchClause.getStartPosition()+catchClause.getLength());
-                          String generic = "Possible generic found at line:" + startLine+" Endline: " + endLine;
-                          count+=1;
-                          names.add(generic);
-                          startline.add(Integer.toString(startLine));
-                          endline.add(Integer.toString(endLine));
+             if (statement instanceof ThrowStatement) {
+            	 ThrowStatement throwStatement = (ThrowStatement) statement;
+                 //String throwExpression = throwStatement.getExpression().toString();
+                 
+                 if (throwStatement.getExpression() instanceof ClassInstanceCreation) {
+                     ClassInstanceCreation cic = (ClassInstanceCreation) throwStatement.getExpression();
+                     if (cic.getType() instanceof SimpleType) {
+                         SimpleType st = (SimpleType) cic.getType();
+                         if ("Exception".equals(st.getName().getFullyQualifiedName()) || "RuntimeException".equals(st.getName().getFullyQualifiedName()) || "Throwable".equals(st.getName().getFullyQualifiedName())) {
+                        	 //System.out.println("here"+throwStatement.getStartPosition());
+                        	 //System.out.println("Exception Type: " + st.getName().getFullyQualifiedName());
+                        	 int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(throwStatement.getStartPosition());
+                         	  int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(throwStatement.getStartPosition()+throwStatement.getLength());
+                              String generic = "Possible generic found at line:" + startLine+" Endline: " + endLine;
+                              count+=1;
+                              names.add(generic);
+                              startline.add(Integer.toString(startLine));
+                              endline.add(Integer.toString(endLine));
+                         }
                      }
                  }
+                     
+                 
              }
          }
     	
