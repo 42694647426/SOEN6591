@@ -85,9 +85,13 @@ class DestructiveWrapping {
 		        for (Object obj : block.statements()) {
 		            if (obj instanceof ThrowStatement) {
 		            	ThrowStatement throwStatement = (ThrowStatement) obj;
-		                if (!throwStatement.getExpression().toString().contains(node.getException().getName().toString()))  {
+		            	String throwExpression = throwStatement.getExpression().toString();
+		            	String catchExceptionType = node.getException().getType().toString();
+		                if ((!throwExpression.contains(catchExceptionType) && 
+		                		(!throwExpression.contains(" Exception")) && 
+		                		(!throwExpression.contains("RuntimeException")) && 
+		                		(!throwExpression.contains("Throwable"))))  {
 		                	count +=1;
-	                    	//System.out.println("Method:"+node.getName());
 	                  	  	int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
 	                  	    int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
 	                        String destructive = "Possible destructive wrapping found at line:" + startLine;
