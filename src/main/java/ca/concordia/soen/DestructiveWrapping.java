@@ -25,7 +25,7 @@ import com.opencsv.CSVWriter;
 class DestructiveWrapping {
 
   public static void main(String[]  args) throws IOException {
-	  ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
+	    ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
 	    File file = new File(args[0]);
 	    List<String> files = new ArrayList<String>();
 	    Filewalker.listOfFiles(file, files);
@@ -72,38 +72,37 @@ class DestructiveWrapping {
   }
 
 
-  static class Visitor extends ASTVisitor {
-    int count = 0;
-    List<String> names = new ArrayList<>();
-    List<String> startline = new ArrayList<>();
-    List<String> endline = new ArrayList<>();
-    @Override
-    public boolean visit(CatchClause node) {
-    			
-                Statement statement = node.getBody();
-                if (statement instanceof Block) {
-                    Block block = (Block) statement;
-                    for (Object obj : block.statements()) {
-                        if (obj instanceof ThrowStatement) {
-                        	ThrowStatement throwStatement = (ThrowStatement) obj;
-                            if (!throwStatement.getExpression().toString().contains(node.getException().getName().getIdentifier()))  {
-                                	count +=1;
-                                	//System.out.println("Method:"+node.getName());
-                              	  int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
-                              	  int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
-                                   String destructive = "Possible destructive wrapping found at line:" + startLine;
-                                   names.add(destructive);
-                                   startline.add(Integer.toString(startLine));
-                                   endline.add(Integer.toString(endLine));
-                                }
-                            }
-                        }
-                    }
-                
-                return super.visit(node);
-            
-        
+    static class Visitor extends ASTVisitor {
+	    int count = 0;
+	    List<String> names = new ArrayList<>();
+	    List<String> startline = new ArrayList<>();
+	    List<String> endline = new ArrayList<>();
+	    @Override
+	    public boolean visit(CatchClause node) {			
+		    Statement statement = node.getBody();
+		    if (statement instanceof Block && !((Block) statement).statements().isEmpty()) {
+		        Block block = (Block) statement;
+		        for (Object obj : block.statements()) {
+		            if (obj instanceof ThrowStatement) {
+		            	ThrowStatement throwStatement = (ThrowStatement) obj;
+		            	String throwExpression = throwStatement.getExpression().toString();
+		            	String catchExceptionType = node.getException().getType().toString();
+		                if ((!throwExpression.contains(catchExceptionType) && 
+		                		(!throwExpression.contains(" Exception")) && 
+		                		(!throwExpression.contains("RuntimeException")) && 
+		                		(!throwExpression.contains("Throwable"))))  {
+		                	count +=1;
+	                  	  	int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
+	                  	    int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
+	                        String destructive = "Possible destructive wrapping found at line:" + startLine;
+	                        names.add(destructive);
+		                    startline.add(Integer.toString(startLine));
+		                    endline.add(Integer.toString(endLine));
+	                    }
+	                }
+	            }
+	        }    
+		    return super.visit(node); 
+	    }
     }
-  }
-
 }
