@@ -6,14 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.*;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.CatchClause;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Statement;
 
 import ca.concordia.soen.CatchClauseCounter.Visitor;
 
@@ -72,48 +64,51 @@ class DestructiveWrapping {
   }
 
 
-  
   static class Visitor extends ASTVisitor {
-    int count = 0;
-    List<String> names = new ArrayList<>();
-    List<String> startline = new ArrayList<>();
-    List<String> endline = new ArrayList<>();
-      @Override
-      public boolean visit(MethodDeclaration methodNode) {
-          Statement statement = methodNode.getBody();
+	    int count = 0;
+	    List<String> names = new ArrayList<>();
+	    List<String> startline = new ArrayList<>();
+	    List<String> endline = new ArrayList<>();
+	    
+	        @Override
+	        public boolean visit(CatchClause catchNode) {
+	            Statement catchStatement = catchNode.getBody();
+	            if (catchStatement instanceof Block && !((Block) catchStatement).statements().isEmpty()) {
+	              SimpleName catchException = catchNode.getException().getName();
+	              catchStatement.accept(new ASTVisitor() {
+	                @Override
+	                public boolean visit(ThrowStatement throwNode) {
+	                	Expression expression  = throwNode.getExpression();
+	                	if(expression instanceof ClassInstanceCreation) {
+	                		ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) expression;
+	                        Type thrownExceptionType = classInstanceCreation.getType();
+	                        
+	                        if (thrownExceptionType.isSimpleType()) {
+	                            SimpleType simpleType = (SimpleType) thrownExceptionType;
+	                            SimpleName typeName = (SimpleName) simpleType.getName();
+	                            if (!typeName.equals(catchException)) {
+	        	                    count += 1;
+	        	                    int startLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition());
+	        	                    int endLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition() + throwNode.getLength());
+	        	                    String destructive = "Possible destructive wrapping found at line:" + startLine;
+	        	                    names.add(destructive);
+	        	                
+	        	                    startline.add(Integer.toString(startLine));
+	        	                    endline.add(Integer.toString(endLine));
+	                        }
+	                
+	                  
+	                  }
+	                  return super.visit(throwNode);
+	                }
+						return true;
+	                }
+	              });
+	            }
+	            return true;
+	      }  
+	      
+	  }
 
-          if (statement instanceof Block && !((Block) statement).statements().isEmpty()) {
-              statement.accept(new ASTVisitor() {
-                  @Override
-                  public boolean visit(CatchClause catchNode) {
-                      Statement catchStatement = catchNode.getBody();
-                      if (catchStatement instanceof Block && !((Block) catchStatement).statements().isEmpty()) {
-                    	  String catchException = catchNode.getException().getType().toString();
-                    	  catchStatement.accept(new ASTVisitor() {
-                    		  @Override
-                    		  public boolean visit(ThrowStatement throwNode) {
-                    			  String throwExpressionString = throwNode.getExpression().toString();
-                    			  if (!throwExpressionString.contains(catchException)) {
-                    				  count += 1;
-                                      int startLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition());
-                                      int endLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition() + throwNode.getLength());
-                                      String destructive = "Possible destructive wrapping found at line:" + startLine;
-                                      names.add(destructive);
-                                  
-                                      startline.add(Integer.toString(startLine));
-          		                      endline.add(Integer.toString(endLine));
-                    			  }
-                    			  return super.visit(throwNode);
-                    		  }
-                    	  });
-                      }
-                      return true;
-                  }
-              });
-          }
-          return true;
-                	  
-      }
-  }
- 
+
 }
