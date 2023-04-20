@@ -72,37 +72,48 @@ class DestructiveWrapping {
   }
 
 
-    static class Visitor extends ASTVisitor {
-	    int count = 0;
-	    List<String> names = new ArrayList<>();
-	    List<String> startline = new ArrayList<>();
-	    List<String> endline = new ArrayList<>();
-	    @Override
-	    public boolean visit(CatchClause node) {			
-		    Statement statement = node.getBody();
-		    if (statement instanceof Block && !((Block) statement).statements().isEmpty()) {
-		        Block block = (Block) statement;
-		        for (Object obj : block.statements()) {
-		            if (obj instanceof ThrowStatement) {
-		            	ThrowStatement throwStatement = (ThrowStatement) obj;
-		            	String throwExpression = throwStatement.getExpression().toString();
-		            	String catchExceptionType = node.getException().getType().toString();
-		                if ((!throwExpression.contains(catchExceptionType) && 
-		                		(!throwExpression.contains(" Exception")) && 
-		                		(!throwExpression.contains("RuntimeException")) && 
-		                		(!throwExpression.contains("Throwable"))))  {
-		                	count +=1;
-	                  	  	int startLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition());
-	                  	    int endLine = ((CompilationUnit) node.getRoot()).getLineNumber(node.getStartPosition()+node.getLength());
-	                        String destructive = "Possible destructive wrapping found at line:" + startLine;
-	                        names.add(destructive);
-		                    startline.add(Integer.toString(startLine));
-		                    endline.add(Integer.toString(endLine));
-	                    }
-	                }
-	            }
-	        }    
-		    return super.visit(node); 
-	    }
-    }
+  
+  static class Visitor extends ASTVisitor {
+    int count = 0;
+    List<String> names = new ArrayList<>();
+    List<String> startline = new ArrayList<>();
+    List<String> endline = new ArrayList<>();
+      @Override
+      public boolean visit(MethodDeclaration methodNode) {
+          Statement statement = methodNode.getBody();
+
+          if (statement instanceof Block && !((Block) statement).statements().isEmpty()) {
+              statement.accept(new ASTVisitor() {
+                  @Override
+                  public boolean visit(CatchClause catchNode) {
+                      Statement catchStatement = catchNode.getBody();
+                      if (catchStatement instanceof Block && !((Block) catchStatement).statements().isEmpty()) {
+                    	  String catchException = catchNode.getException().getType().toString();
+                    	  catchStatement.accept(new ASTVisitor() {
+                    		  @Override
+                    		  public boolean visit(ThrowStatement throwNode) {
+                    			  String throwExpressionString = throwNode.getExpression().toString();
+                    			  if (throwExpressionString.contains(catchException)) {
+                    				  count += 1;
+                                      int startLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition());
+                                      int endLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition() + throwNode.getLength());
+                                      String destructive = "Possible destructive wrapping found at line:" + startLine;
+                                      names.add(destructive);
+                                  
+                                      startline.add(Integer.toString(startLine));
+          		                      endline.add(Integer.toString(endLine));
+                    			  }
+                    			  return super.visit(throwNode);
+                    		  }
+                    	  });
+                      }
+                      return true;
+                  }
+              });
+          }
+          return true;
+                	  
+      }
+  }
+ 
 }
