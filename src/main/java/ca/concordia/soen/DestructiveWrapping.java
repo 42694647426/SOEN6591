@@ -93,7 +93,7 @@ class DestructiveWrapping {
                     		  @Override
                     		  public boolean visit(ThrowStatement throwNode) {
                     			  String throwExpressionString = throwNode.getExpression().toString();
-                    			  if (throwExpressionString.contains(catchException)) {
+                    			  if (!throwExpressionString.contains(catchException)) {
                     				  count += 1;
                                       int startLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition());
                                       int endLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition() + throwNode.getLength());
