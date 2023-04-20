@@ -72,39 +72,39 @@ class DestructiveWrapping {
 	    
 	        @Override
 	        public boolean visit(CatchClause catchNode) {
-	            Statement catchStatement = catchNode.getBody();
-	            if (catchStatement instanceof Block && !((Block) catchStatement).statements().isEmpty()) {
-	              SimpleName catchException = catchNode.getException().getName();
-	              catchStatement.accept(new ASTVisitor() {
-	                @Override
-	                public boolean visit(ThrowStatement throwNode) {
-	                	Expression expression  = throwNode.getExpression();
-	                	if(expression instanceof ClassInstanceCreation) {
-	                		ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) expression;
-	                        Type thrownExceptionType = classInstanceCreation.getType();
-	                        
-	                        if (thrownExceptionType.isSimpleType()) {
-	                            SimpleType simpleType = (SimpleType) thrownExceptionType;
-	                            SimpleName typeName = (SimpleName) simpleType.getName();
-	                            if (!typeName.equals(catchException)) {
-	        	                    count += 1;
-	        	                    int startLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition());
-	        	                    int endLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition() + throwNode.getLength());
-	        	                    String destructive = "Possible destructive wrapping found at line:" + startLine;
-	        	                    names.add(destructive);
-	        	                
-	        	                    startline.add(Integer.toString(startLine));
-	        	                    endline.add(Integer.toString(endLine));
-	                        }
-	                
-	                  
-	                  }
-	                  return super.visit(throwNode);
-	                }
-						return true;
-	                }
-	              });
-	            }
+	          Statement catchStatement = catchNode.getBody();
+	            
+              SimpleName catchException = catchNode.getException().getName();
+              catchStatement.accept(new ASTVisitor() {
+                @Override
+                public boolean visit(ThrowStatement throwNode) {
+                	Expression expression  = throwNode.getExpression();
+                	if(expression instanceof ClassInstanceCreation) {
+                		ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) expression;
+                        Type thrownExceptionType = classInstanceCreation.getType();
+                        
+                        if (thrownExceptionType.isSimpleType()) {
+                            SimpleType simpleType = (SimpleType) thrownExceptionType;
+                            SimpleName typeName = (SimpleName) simpleType.getName();
+                            if (!typeName.equals(catchException)) {
+        	                    count += 1;
+        	                    int startLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition());
+        	                    int endLine = ((CompilationUnit) throwNode.getRoot()).getLineNumber(throwNode.getStartPosition() + throwNode.getLength());
+        	                    String destructive = "Possible destructive wrapping found at line:" + startLine;
+        	                    names.add(destructive);
+        	                
+        	                    startline.add(Integer.toString(startLine));
+        	                    endline.add(Integer.toString(endLine));
+                        }
+                
+                  
+                  }
+                  return super.visit(throwNode);
+                }
+					return true;
+                }
+              });
+            
 	            return true;
 	      }  
 	      
